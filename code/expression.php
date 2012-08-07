@@ -94,15 +94,21 @@ class Brr
 class Expression
 {
 
-  function Expression()
-  {
-    $this->op = '';
-    $this->fun = '';
-    $this->terms = array();
-    $this->brackets = array();
-    $this->ibra = 0;
-    $this->brackets_re = array();
-  }
+	//function Expression()
+	function __construct($str = '')
+	{
+		$this->op = '';
+		$this->fun = '';
+		$this->terms = array();
+		$this->brackets = array();
+		$this->ibra = 0;
+		$this->brackets_re = array();
+		
+		if ( strlen($str) > 0 )
+		{
+			$this->parse( $str );
+		}
+	}
 
 	function get_brackets_re($n)
 	{

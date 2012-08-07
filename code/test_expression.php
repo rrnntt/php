@@ -68,6 +68,19 @@ catch(Exception $ex)
 			$this->assertEqual($e->terms[0]->op,'');
 			$this->assertEqual($e->terms[1]->op,'+');
 		}
+		function testSimplePlus1()
+		{
+			$e = new Expression('x + y');
+			$this->assertTrue($e->is_operator());
+			$this->assertTrue($e->is_function());
+			$this->assertFalse($e->is_number());
+			$this->assertEqual($e->fun,'+');
+			$this->assertEqual(sizeof($e->terms),2);
+			$this->assertEqual($e->terms[0]->fun,'x');
+			$this->assertEqual($e->terms[1]->fun,'y');
+			$this->assertEqual($e->terms[0]->op,'');
+			$this->assertEqual($e->terms[1]->op,'+');
+		}
     }
     
     $test = new TestExpression();
