@@ -81,8 +81,44 @@ catch(Exception $ex)
 			$this->assertEqual($e->terms[0]->op,'');
 			$this->assertEqual($e->terms[1]->op,'+');
 		}
-    }
-    
-    $test = new TestExpression();
-    $test->run(new TextReporter());
+		function testGetVariables()
+		{
+			$e = new Expression('2*x + y*sin(4*x)');
+			$v = $e->getVariables();
+			$this->assertEqual(sizeof($v),2);
+			$this->assertEqual($v[0], 'x');
+			$this->assertEqual($v[1], 'y');
+		}
+		
+		function test_php_expr()
+		{
+			$e = new Expression('x + y');
+			$this->assertEqual( $e->php_expr(), '($x+$y)' );
+			$this->assertEqual( $e->eval_double( array( 'x' => 1, 'y' => 3 ) ), 4 );
+		}
+		
+		function test_unary_minus()
+		{
+			$e = new Expression('-x');
+			$this->assertEqual($e->fun,'+');
+			$this->assertEqual(sizeof($e->terms),1);
+			$this->assertEqual($e->terms[0]->fun,'x');
+			$this->assertEqual($e->terms[0]->op,'-');
+
+			$e = new Expression('-x+1 = y');
+			$this->assertEqual($e->fun,'=');
+			$this->assertEqual(sizeof($e->terms),2);
+			$this->assertEqual($e->terms[0]->fun,'+');
+			$this->assertEqual($e->terms[1]->fun,'y');
+
+			$e = new Expression('x+1 >=-y');
+			$this->assertEqual($e->fun,'=');
+			$this->assertEqual(sizeof($e->terms),2);
+			$this->assertEqual($e->terms[0]->fun,'+');
+			$this->assertEqual($e->terms[1]->fun,'+');
+		}
+	}
+
+	$test = new TestExpression();
+	$test->run(new TextReporter());
 ?>

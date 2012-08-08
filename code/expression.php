@@ -94,23 +94,266 @@ class Brr
 class Expression
 {
 
+	public $op = '';
+	public $fun = '';
+	public $terms = array();
+
+	private $brackets = array();
+	private $ibra = 0;
+	private $brackets_re = array();
+	
 	//function Expression()
 	function __construct($str = '')
 	{
-		$this->op = '';
-		$this->fun = '';
-		$this->terms = array();
-		$this->brackets = array();
-		$this->ibra = 0;
-		$this->brackets_re = array();
-		
 		if ( strlen($str) > 0 )
 		{
 			$this->parse( $str );
 		}
 	}
+// ---------------------------------------------------------------------------------
+//			Public methods
+// ---------------------------------------------------------------------------------
 
-	function get_brackets_re($n)
+	function is_operator()
+	{
+		global $precedence;
+		return array_key_exists($this->fun,$precedence);
+	}
+
+	function is_function()
+	{
+		return sizeof($this->terms) > 0;
+	}
+
+	function is_number()
+	{
+		return sizeof($this->terms) == 0 && preg_match(':[\d\.]+:',$this->fun);
+	}
+
+	/**
+	 * Parse a string into an expression
+	 */
+	function parse($str)
+	{
+		// replace backslashes with sqrt, eg \2 -> sqrt(2)
+		$ss = preg_replace(':\\\\([\w\.]+):','sqrt($1)',$str);
+		// this replaces \(stuff) with sqrt(stuff), eg \(a^2+b^2) -> sqrt(a^2+b^2)
+		$ss = preg_replace(':\\\\\((.+)\):','sqrt($1)',$ss);
+		// equations/inequalities containing unary '-' are parsed wrongly
+		// fix it by putting both part in brackets
+		$ss = preg_replace(':(.+?)(<=|>=|<|>|=)(.+):','($1)$2($3)',$ss);
+		//echo $ss.'<br>';
+		$brr = new Brr();
+		$c = $brr->sub($ss);
+		$this->parse1($c,0);
+		array_splice( $this->brackets, 0 );
+		array_splice( $this->brackets_re, 0 );
+	}
+	
+	/**
+	 * Return a list of all variables in the expression
+	 */
+	function getVariables()
+	{
+		$vars = array();
+		$this->collectVariables( $vars );
+		return $vars;
+	}
+
+	/**
+	 * Recursively collects all variables in the expression into an array
+	 * @param &$vars :: Reference to an array collecting the variable names
+	 */
+	private function collectVariables( &$vars )
+	{
+		if ( $this->is_function() )
+		{
+			foreach($this->terms as $e)
+			{
+				$e->collectVariables( $vars );
+			}
+		}
+		else if ( !$this->is_number() and !in_array( $this->fun, $vars ) )
+		{
+			array_push( $vars, $this->fun );
+		}
+	}
+
+	/**
+	 * Return latex code for this expression.
+	 */
+	function latex()
+	{
+		if ($this->fun == '*' && sizeof($this->terms) == 2 && $this->terms[1]->op == '/')
+		{
+			return '\frac{'.$this->terms[0]->latex().'}{'.$this->terms[1]->latex().'}';
+		}
+		global $precedence;
+		$out = '';
+		$n = sizeof($this->terms); // number of terms
+		$im_operator = $this->is_operator() && $this->fun != '^';
+		$im_times = $this->fun == '*';
+		$p = $precedence[$this->fun];
+		// loop over the terms
+		for($i=0;$i<$n;++$i)
+		{
+			// make latex for the term
+			$t = $this->terms[$i];
+			$tout = $t->latex();
+			if ($im_operator && $t->is_operator() && $p > $precedence[$t->fun])
+			{
+				$tout = '('.$tout.')';
+			}
+			$op = $t->op;
+			// treat special cases of operator: replace symbols with latex commands
+			if ($im_times && $op == '*')
+			{
+				if ($t->is_number() && $this->terms[$i-1]->is_number())
+				{
+					$op = '\times ';
+				}
+				else
+				{
+					$op = ' ';
+				}
+			}
+			if ($op == '>=')
+			{
+				$op = '\\ge';
+			}
+			if ($op == '<=')
+			{
+				$op = '\\le';
+			}
+			// add term's code to the output
+			$out .= $op.'{'.$tout.'}';
+		}
+		if ($n > 0)
+		{// I am a named function such as sin(...)
+			if (!array_key_exists($this->fun,$precedence))
+			{
+				if ($n > 1 || sizeof($this->terms[0]->terms) > 0)
+				{
+					$out = '('.$out.')';
+				}
+				$out = '\\'.$this->fun.'{'.$out.'}';
+			}
+		}
+		else
+		{// I am a simple variable
+			global $greek;
+			if (strlen($this->fun) > 1 && array_key_exists($this->fun,$greek))
+			{
+				$out = $greek[$this->fun].' ';
+			}
+			else
+			{
+				$out = $this->fun;
+			}
+			//if (strlen($this->op) > 0)
+			//{
+			//	$out = '{'.$out.'}';
+			//}
+		}
+		//$out = preg_replace(':(\d+)\*{(\d+)}:','${1}\times ${2}',$out);
+		//$out = preg_replace(':\*:',' ',$out);
+		return $out;
+	}
+
+	function log($br = '<br>')
+	{
+	  echo $this->op.$this->fun;
+	  $n = sizeof($this->terms);
+	  if ($n > 0) echo '[';
+	  for($i=0;$i<$n;++$i)
+	  {
+		$this->terms[$i]->log(' ');
+	  }
+	  if ($n > 0) echo ']';
+	  echo $br;
+	}
+
+	/**
+	 * Returns the expression as a php expression, variable names prefixed with $
+	 */
+	function php_expr()
+	{
+		if (sizeof($this->terms) == 0)
+		{// a variable or number
+			if (preg_match(':^\d.*:',$this->fun))
+			{
+				return $this->fun;
+			}
+			else
+			{
+				return '$'.$this->fun;
+			}
+		}
+		global $precedence;
+		$res = '';
+		if ($this->fun == '^')
+		{
+			if (sizeof($this->terms) != 2)
+			{
+				throw new Exception('Operator ^ cannot be chained, use brackets');
+			}
+			$res = 'pow';
+		}
+		else if (!array_key_exists($this->fun,$precedence))
+		{
+			$res .= $this->fun;
+		}
+		$res .= '(';
+		foreach($this->terms as $e)
+		{
+			$op = $e->op == '^' ? ',' : $e->op;
+			if ( $op == '=' ) $op = '=='; // throw instead?
+			$res .= $op.$e->php_expr();
+		}
+		$res .= ')';
+		return $res;
+	}
+
+	/**
+	 * Evaluate the expression and return the result as a double
+	 * @param $vars :: variable value dictionary, eg: array('a'=>1,'b'=>2)
+	 */
+	function eval_double($vars)
+	{
+		$pi = M_PI;
+		$ee = M_E;
+		reset($vars);
+		while (list($key, $val) = each($vars)) {
+			eval("\$$key = $val;");
+		}
+		return eval('return '.$this->php_expr().';');
+	}
+
+	/**
+	 * Evaluate the expression multiple times and return the result as an array of doubles
+	 * @param $vars :: variable value dictionary, eg: array('a'=>1,'b'=>2)
+	 * @param $x :: name of the running variable
+	 * @param $xvalues :: array of values for the running variabe (in $x)
+	 * @return Array of doubles calculated for each value in $xvalues
+	 */
+	function eval_double_array($vars,$x,$xvalues)
+	{
+		$pi = M_PI;
+		$ee = M_E;
+		reset($vars);
+		while (list($key, $val) = each($vars)) {
+			eval("\$$key = $val;");
+		}
+		$res = array();
+		$cmd = 'foreach($xvalues as $val){$'.$x.'=$val; array_push($res,'.$this->php_expr().');};';
+		eval($cmd);
+		return $res;
+	}
+	
+// ---------------------------------------------------------------------------------
+//			Private methods
+// ---------------------------------------------------------------------------------
+	private function get_brackets_re($n)
 	{
 		global $brackets_re_template;
 		return sprintf($brackets_re_template,$n,$n);
@@ -133,7 +376,7 @@ class Expression
 		}*/
 	}
 	  
-  function repl_brackets($m)
+  private function repl_brackets($m)
   {
 	//echo 'repl_brakets '.$m[1].'<br>';
     $i = sizeof($this->brackets);
@@ -151,7 +394,7 @@ class Expression
 	* Add a name (?)
 	* @param $name :: array of 2 elements (tuple) with first being op and second is fun
 	*/
-	function add_name($name,$n)
+	private function add_name($name,$n)
 	{
 		/*echo 'add name:'.$name[1].'<br>';
 		while (list($key, $val) = each($this->brackets)) {
@@ -189,7 +432,7 @@ class Expression
 		array_push($this->terms,$e);
 	}
 
-  function set_name($s,$n)
+  private function set_name($s,$n)
   {
     //echo 'set name:'.$s.'<br>';
     if (preg_match(':(\w*)({\d+}):',$s,$m))
@@ -223,7 +466,7 @@ class Expression
     }
   }
 
-	function parse1($s,$n,$names = array())
+	private function parse1($s,$n,$names = array())
 	{
 		/*global $istop;
 		$istop++;
@@ -358,206 +601,6 @@ class Expression
 		}
 	}
 	
-function is_operator()
-{
-	global $precedence;
-	return array_key_exists($this->fun,$precedence);
-}
-
-function is_function()
-{
-	return sizeof($this->terms) > 0;
-}
-
-function is_number()
-{
-	return sizeof($this->terms) == 0 && preg_match(':[\d\.]+:',$this->fun);
-}
-
-/**
- * Parse a string into an expression
- */
-function parse($str)
-{
-	// replace backslashes with sqrt, eg \2 -> sqrt(2)
-	$ss = preg_replace(':\\\\([\w\.]+):','sqrt($1)',$str);
-	// this replaces \(stuff) with sqrt(stuff), eg \(a^2+b^2) -> sqrt(a^2+b^2)
-	$ss = preg_replace(':\\\\\((.+)\):','sqrt($1)',$ss);
-	//echo $ss.'<br>';
-	$brr = new Brr();
-	$c = $brr->sub($ss);
-	$this->parse1($c,0);
-}
-
-/**
- * Return latex code for this expression.
- */
-function latex()
-{
-	if ($this->fun == '*' && sizeof($this->terms) == 2 && $this->terms[1]->op == '/')
-	{
-		return '\frac{'.$this->terms[0]->latex().'}{'.$this->terms[1]->latex().'}';
-	}
-	global $precedence;
-	$out = '';
-	$n = sizeof($this->terms); // number of terms
-	$im_operator = $this->is_operator() && $this->fun != '^';
-	$im_times = $this->fun == '*';
-	$p = $precedence[$this->fun];
-	// loop over the terms
-	for($i=0;$i<$n;++$i)
-	{
-		// make latex for the term
-		$t = $this->terms[$i];
-		$tout = $t->latex();
-		if ($im_operator && $t->is_operator() && $p > $precedence[$t->fun])
-		{
-			$tout = '('.$tout.')';
-		}
-		$op = $t->op;
-		// treat special cases of operator: replace symbols with latex commands
-		if ($im_times && $op == '*')
-		{
-			if ($t->is_number() && $this->terms[$i-1]->is_number())
-			{
-				$op = '\times ';
-			}
-			else
-			{
-				$op = ' ';
-			}
-		}
-		if ($op == '>=')
-		{
-			$op = '\\ge';
-		}
-		if ($op == '<=')
-		{
-			$op = '\\le';
-		}
-		// add term's code to the output
-		$out .= $op.'{'.$tout.'}';
-	}
-	if ($n > 0)
-	{// I am a named function such as sin(...)
-		if (!array_key_exists($this->fun,$precedence))
-		{
-			if ($n > 1 || sizeof($this->terms[0]->terms) > 0)
-			{
-				$out = '('.$out.')';
-			}
-			$out = '\\'.$this->fun.'{'.$out.'}';
-		}
-	}
-	else
-	{// I am a simple variable
-		global $greek;
-		if (strlen($this->fun) > 1 && array_key_exists($this->fun,$greek))
-		{
-			$out = $greek[$this->fun].' ';
-		}
-		else
-		{
-			$out = $this->fun;
-		}
-		//if (strlen($this->op) > 0)
-		//{
-		//	$out = '{'.$out.'}';
-		//}
-	}
-	//$out = preg_replace(':(\d+)\*{(\d+)}:','${1}\times ${2}',$out);
-	//$out = preg_replace(':\*:',' ',$out);
-	return $out;
-}
-
-function log($br = '<br>')
-{
-  echo $this->op.$this->fun;
-  $n = sizeof($this->terms);
-  if ($n > 0) echo '[';
-  for($i=0;$i<$n;++$i)
-  {
-    $this->terms[$i]->log(' ');
-  }
-  if ($n > 0) echo ']';
-  echo $br;
-}
-
-/**
- * Returns the expression as a php expression, variable names prefixed with $
- */
-function php_expr()
-{
-	if (sizeof($this->terms) == 0)
-	{// a variable or number
-		if (preg_match(':^\d.*:',$this->fun))
-		{
-			return $this->fun;
-		}
-		else
-		{
-			return '$'.$this->fun;
-		}
-	}
-	global $precedence;
-	$res = '';
-	if ($this->fun == '^')
-	{
-		if (sizeof($this->terms) != 2)
-		{
-			throw new Exception('Operator ^ cannot be chained, use brackets');
-		}
-		$res = 'pow';
-	}
-	else if (!array_key_exists($this->fun,$precedence))
-	{
-		$res .= $this->fun;
-	}
-	$res .= '(';
-	foreach($this->terms as $e)
-	{
-		$op = $e->op == '^' ? ',' : $e->op;
-		$res .= $op.$e->php_expr();
-	}
-	$res .= ')';
-	return $res;
-}
-
-/**
- * Evaluate the expression and return the result as a double
- * @param $vars :: variable value dictionary, eg: array('a'=>1,'b'=>2)
- */
-function eval_double($vars)
-{
-	$pi = M_PI;
-	$ee = M_E;
-	reset($vars);
-	while (list($key, $val) = each($vars)) {
-		eval("\$$key = $val;");
-	}
-	return eval('return '.$this->php_expr().';');
-}
-
-/**
- * Evaluate the expression multiple times and return the result as an array of doubles
- * @param $vars :: variable value dictionary, eg: array('a'=>1,'b'=>2)
- * @param $x :: name of the running variable
- * @param $xvalues :: array of values for the running variabe (in $x)
- * @return Array of doubles calculated for each value in $xvalues
- */
-function eval_double_array($vars,$x,$xvalues)
-{
-	$pi = M_PI;
-	$ee = M_E;
-	reset($vars);
-	while (list($key, $val) = each($vars)) {
-		eval("\$$key = $val;");
-	}
-	$res = array();
-	$cmd = 'foreach($xvalues as $val){$'.$x.'=$val; array_push($res,'.$this->php_expr().');};';
-	eval($cmd);
-	return $res;
-}
 
 /**
  * Return latex code for the expression.
