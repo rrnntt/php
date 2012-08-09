@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<application id="app" mode="Debug">
+  <!-- alias definitions and namespace usings
+  <paths>
+    <alias id="myalias" path="./lib" />
+    <using namespace="Application.common.*" />
+  </paths>
+  -->
+	<paths>
+	  <using namespace="Application.database.*" />
+	</paths>
+	
+  <!-- configurations for modules -->
+  <modules>
+    <!-- Remove this comment mark to enable caching
+    <module id="cache" class="System.Caching.TDbCache" />
+    -->
+
+    <!-- Remove this comment mark to enable PATH url format
+    <module id="request" class="THttpRequest" UrlFormat="Path" />
+    -->
+
+    <!-- Remove this comment mark to enable logging
+    <module id="log" class="System.Util.TLogRouter">
+      <route class="TBrowserLogRoute" Categories="System" />
+    </module>
+    -->
+	
+	  <module id="db" class="System.Data.TDataSourceConfig">
+		<database ConnectionString="sqlite:protected/data/app.db" />
+	  </module>
+	  <module class="System.Data.ActiveRecord.TActiveRecordConfig" ConnectionID="db" />
+  </modules>
+
+  <!-- configuration for available services -->
+  <services>
+    <service id="page" class="TPageService" DefaultPage="Home" />
+  </services>
+
+  <!-- application parameters
+  <parameters>
+    <parameter id="param1" value="value1" />
+    <parameter id="param2" value="value2" />
+  </parameters>
+  -->
+</application>
