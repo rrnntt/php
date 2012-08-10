@@ -31,6 +31,16 @@
 		<database ConnectionString="sqlite:protected/data/app.db" />
 	  </module>
 	  <module class="System.Data.ActiveRecord.TActiveRecordConfig" ConnectionID="db" />
+	  
+	  <module id="auth"
+      class="System.Security.TAuthManager"
+      UserManager="users" 
+      LoginPage="users.LoginUser" />
+ 
+    <module id="users"
+      class="System.Security.TDbUserManager"
+      UserClass="Application.User" />    
+	  
   </modules>
 
   <!-- configuration for available services -->
