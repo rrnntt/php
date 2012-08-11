@@ -1,10 +1,9 @@
-<html>
-<head><title>My Blog - Contact</title></head>
-<body>
+<%@ MasterClass="Application.layouts.MainLayout" Title="Contact" %>
+ 
+<com:TContent ID="Main">
+
 <h1>Contact</h1>
 <p>Please fill out the following form to let me know your feedback on my blog. Thanks!</p>
- 
-<com:TForm> 
  
 <span>Your Name:</span>
 <com:TRequiredFieldValidator ControlToValidate="Name"
@@ -38,7 +37,4 @@
 <br/>
 <com:TButton Text="Submit" OnClick="submitButtonClicked" />
  
-</com:TForm>
- 
-</body>
-</html>
+</com:TContent>

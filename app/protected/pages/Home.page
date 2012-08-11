@@ -1,8 +1,7 @@
-<html>
-<head>
-  <title>Welcome to PRADO</title>
-</head>
-<body>
-<h1>Welcome to PRADO!</h1>
-</body>
-</html>
+<!-- This page uses the default template MasterClass set in the page service section of application.xml -->
+
+<com:TContent ID="Main">
+
+<h2>Welcome to PRADO!</h2>
+
+</com:TContent>

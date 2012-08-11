@@ -23,7 +23,7 @@ class User extends TDbUser
         $userRecord=UserRecord::finder()->findByPk($username);
         if($userRecord instanceof UserRecord) // if found
         {
-            $user=new BlogUser($this->Manager);
+            $user=new User($this->Manager);
             $user->Name=$username;  // set username
             $user->Roles=($userRecord->role==1?'admin':'user'); // set role
             $user->IsGuest=false;   // the user is not a guest
