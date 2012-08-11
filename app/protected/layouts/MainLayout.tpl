@@ -13,11 +13,11 @@
 </div>
  
 <div id="footer">
-<com:THyperLink Text="Login"
+<com:THyperLink Text="Login"  SkinID="MainMenu"
     NavigateUrl="<%= $this->Service->constructUrl('users.LoginUser') %>"
     Visible="<%= $this->User->IsGuest %>" />
  
-<com:TLinkButton Text="Logout"
+<com:TLinkButton Text="Logout" SkinID="MainMenu"
     OnClick="logoutButtonClicked"
     Visible="<%= !$this->User->IsGuest %>"
     CausesValidation="false" />

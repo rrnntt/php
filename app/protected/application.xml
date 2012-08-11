@@ -47,7 +47,7 @@
   <services>
     <service id="page" class="TPageService" DefaultPage="Home" >
 		<!-- initial properties set for all pages -->
-		<pages MasterClass="Application.layouts.MainLayout" />
+		<pages MasterClass="Application.layouts.MainLayout" Theme="Basic" />
 	</service>
   </services>
 
