@@ -1,7 +1,7 @@
-<?php
-
-class PostRenderer extends TRepeaterItemRenderer
-{
-}
-
-?>
+<?php
+
+class PostRenderer extends TRepeaterItemRenderer
+{
+}
+
+?>
