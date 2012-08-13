@@ -19,6 +19,16 @@ CREATE TABLE posts (
   status        INTEGER NOT NULL         /* 0: published; 1: draft; 2: pending; 2: denied */
 );
 
+/* create problem table */
+CREATE TABLE problems (
+  problem_id    INTEGER NOT NULL PRIMARY KEY,
+  subject       VARCHAR(128) NOT NULL,   /* the subject: maths, phys, ... */
+  chapter       VARCHAR(128) NOT NULL,   /* a chapter within the subject */
+  problem_type  VARCHAR(128) NOT NULL,   /* problem type: text, equation, graph, composite, ... */
+  content       TEXT                     /* problem definition: depending on the type it can be either 
+                                            text + answer, page (class) name, ?... , I don't know yet what*/
+);
+
 /* insert some initial data records for testing */
 INSERT INTO users VALUES ('admin', 'admin@example.com', 'demo', 1, 'Qiang', 'Xue');
 INSERT INTO users VALUES ('demo', 'demo@example.com', 'demo', 0, 'Wei', 'Zhuo');

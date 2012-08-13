@@ -22,7 +22,7 @@ catch(Exception $ex)
     }
     require_once(SIMPLE_TEST . 'unit_tester.php');
     require_once(SIMPLE_TEST . 'reporter.php');
-    require_once('../code/expression.php');
+    require_once('../code/Expression.php');
 
     class TestExpression extends UnitTestCase {
 		function __construct() {

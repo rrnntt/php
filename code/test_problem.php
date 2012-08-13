@@ -4,7 +4,7 @@
     }
     require_once(SIMPLE_TEST . 'unit_tester.php');
     require_once(SIMPLE_TEST . 'reporter.php');
-    require_once('problem.php');
+    require_once('EquationProblem.php');
 
     class TestProblem extends UnitTestCase {
 		function __construct() {
