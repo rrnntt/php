@@ -17,5 +17,12 @@ class UserRecord extends TActiveRecord
 	{
 		return parent::finder($className);
 	}
+	
+	public $posts=array(); //holds an array of PostRecord
+ 
+    public static $RELATIONS=array
+    (
+        'posts' => array(self::HAS_MANY, 'PostRecord'),
+    );
 }
 ?>

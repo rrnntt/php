@@ -8,18 +8,18 @@ CREATE TABLE users (
   last_name     VARCHAR(128)
 );
  
-/* create posts table 
+/* create posts table */
 CREATE TABLE posts (
   post_id       INTEGER NOT NULL PRIMARY KEY,
   author_id     VARCHAR(128) NOT NULL
                 CONSTRAINT fk_author REFERENCES users(username),
-/*  create_time   INTEGER NOT NULL,        UNIX timestamp */
-/*  title         VARCHAR(256) NOT NULL,   title of the post */
-/*  content       TEXT,                    post body */
-/*  status        INTEGER NOT NULL         0: published; 1: draft; 2: pending; 2: denied */
-/*);*/
+  create_time   INTEGER NOT NULL,        /* UNIX timestamp */
+  title         VARCHAR(256) NOT NULL,   /* title of the post */
+  content       TEXT,                    /* post body */
+  status        INTEGER NOT NULL         /* 0: published; 1: draft; 2: pending; 2: denied */
+);
 
 /* insert some initial data records for testing */
 INSERT INTO users VALUES ('admin', 'admin@example.com', 'demo', 1, 'Qiang', 'Xue');
 INSERT INTO users VALUES ('demo', 'demo@example.com', 'demo', 0, 'Wei', 'Zhuo');
-/*INSERT INTO posts VALUES (NULL, 'admin', 1175708482, 'first post', 'this is my first post', 0);*/
+INSERT INTO posts VALUES (NULL, 'admin', 1175708482, 'first post', 'this is my first post', 0);

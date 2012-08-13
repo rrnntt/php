@@ -45,7 +45,7 @@
 
   <!-- configuration for available services -->
   <services>
-    <service id="page" class="TPageService" DefaultPage="Home" >
+    <service id="page" class="TPageService" DefaultPage="posts.ListPost" >
 		<!-- initial properties set for all pages -->
 		<pages MasterClass="Application.layouts.MainLayout" Theme="Basic" />
 	</service>
