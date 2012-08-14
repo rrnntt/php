@@ -1,0 +1,17 @@
+<%@ Title="Problems" %>
+ 
+<com:TContent ID="Main">
+ 
+<com:TRepeater ID="Repeater"
+    ItemRenderer="Application.pages.problems.ProblemRenderer"
+    AllowPaging="true"
+    AllowCustomPaging="true"
+    PageSize="2"
+    />
+ 
+<com:TPager ControlToPaginate="Repeater" OnPageIndexChanged="pageChanged" 
+    Mode="Numeric"
+	ButtonType="PushButton"
+    />
+ 
+</com:TContent>

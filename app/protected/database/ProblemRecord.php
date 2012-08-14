@@ -7,8 +7,7 @@ class ProblemRecord extends TActiveRecord
 	const TABLE='problems';
 
 	public $problem_id;
-	public $subject;
-	public $chapter;
+	public $chapter_id;
 	public $problem_type;
 	public $content;
 
@@ -17,20 +16,19 @@ class ProblemRecord extends TActiveRecord
 		return parent::finder($className);
 	}
 	
-	public static function mathText($chapter)
+	public static function mathText($chapter_id)
 	{
+		
 		$rec = new ProblemRecord;
-		$rec->subject = 'maths';
-		$rec->chapter = $chapter;
+		$rec->chapter_id = $chapter_id;
 		$rec->problem_type = 'text';
 		return $rec;
 	}
 
-	public static function mathEquation($chapter)
+	public static function mathEquation($chapter_id)
 	{
 		$rec = new ProblemRecord;
-		$rec->subject = 'maths';
-		$rec->chapter = $chapter;
+		$rec->chapter_id = $chapter_id;
 		$rec->problem_type = 'equation';
 		return $rec;
 	}
