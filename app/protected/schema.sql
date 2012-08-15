@@ -2,7 +2,7 @@ CREATE TABLE chapters (
   chapter_id    INTEGER NOT NULL PRIMARY KEY,
   subject       VARCHAR(128) NOT NULL   /* the subject: maths, phys, ... */
                 CONSTRAINT fk_subject REFERENCES subjects(name),
-  name          VARCHAR(128) NOT NULL
+  title         VARCHAR(128) NOT NULL
 );
 
 /* create posts table */

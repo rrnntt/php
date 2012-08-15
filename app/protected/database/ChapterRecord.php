@@ -8,7 +8,7 @@ class ChapterRecord extends TActiveRecord
 
 	public $chapter_id;
 	public $subject;
-	public $name;
+	public $title;
 
 	public static function finder($className=__CLASS__)
 	{
