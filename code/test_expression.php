@@ -22,7 +22,8 @@ catch(Exception $ex)
     }
     require_once(SIMPLE_TEST . 'unit_tester.php');
     require_once(SIMPLE_TEST . 'reporter.php');
-    require_once('../code/Expression.php');
+    require_once('../code/Expression1.php');
+    //require_once('../code/Expr.php');
 
     class TestExpression extends UnitTestCase {
 		function __construct() {
@@ -80,6 +81,11 @@ catch(Exception $ex)
 			$this->assertEqual($e->terms[1]->fun,'y');
 			$this->assertEqual($e->terms[0]->op,'');
 			$this->assertEqual($e->terms[1]->op,'+');
+		}
+		function testSin()
+		{
+			$e = new Expression('sin(x)+y');
+			$e->log();
 		}
 		function testGetVariables()
 		{

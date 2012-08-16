@@ -1,53 +1,5 @@
 <?php
 
-$istop = 0;
-
-$precedence = array(
- ','=>1,
-
- '='=>2,
- '>'=>2,
- '<'=>2,
- '!='=>2,
- '>='=>2,
- '<='=>2,
-
- '+'=>3,
- '-'=>3,
-
- '*'=>4,
- '/'=>4,
-
- '^'=>5,
-
- '@'=>6
-);
-
-$greek = array(
-'pi' => '\pi',
-'Pi' => '\Pi',
-'alf' => '\alpha',
-'bet' => '\beta',
-'gam' => '\gamma',
-'dlt' => '\delta',
-'Dlt' => '\Delta',
-'sig' => '\sigma',
-'xi' => '\xi',
-'zet' => '\zeta',
-'eps' => '\epsilon',
-'kap' => '\kappa',
-'om' => '\omega',
-'Ohm' => '\Omega',
-'ee' => 'e'
-);
-
-$op_name = array(1=>',',2=>'=',3=>'+',4=>'*',5=>'^',6=>'@');
-
-//$brackets_re_template = '|(\w*\(\[%d\].+?\)\[%d\])|';
-$brackets_re_template = '|(\(\[%d\].+?\)\[%d\])|';
-$brackets_re = array();
-
-
 // Replace matching brackets with tags '([n]' and ')[n]' where n is an int number
 class Brr
 {
@@ -94,6 +46,49 @@ class Brr
 class Expression
 {
 
+	private $precedence = array(
+	 ','=>1,
+
+	 '='=>2,
+	 '>'=>2,
+	 '<'=>2,
+	 '!='=>2,
+	 '>='=>2,
+	 '<='=>2,
+
+	 '+'=>3,
+	 '-'=>3,
+
+	 '*'=>4,
+	 '/'=>4,
+
+	 '^'=>5,
+
+	 '@'=>6
+	);
+
+	private $greek = array(
+	'pi' => '\pi',
+	'Pi' => '\Pi',
+	'alf' => '\alpha',
+	'bet' => '\beta',
+	'gam' => '\gamma',
+	'dlt' => '\delta',
+	'Dlt' => '\Delta',
+	'sig' => '\sigma',
+	'xi' => '\xi',
+	'zet' => '\zeta',
+	'eps' => '\epsilon',
+	'kap' => '\kappa',
+	'om' => '\omega',
+	'Ohm' => '\Omega',
+	'ee' => 'e'
+	);
+
+	private $op_name = array(1=>',',2=>'=',3=>'+',4=>'*',5=>'^',6=>'@');
+
+	private $brackets_re_template = '|(\(\[%d\].+?\)\[%d\])|';
+
 	public $op = '';
 	public $fun = '';
 	public $terms = array();
@@ -116,8 +111,7 @@ class Expression
 
 	function is_operator()
 	{
-		global $precedence;
-		return array_key_exists($this->fun,$precedence);
+		return array_key_exists($this->fun,$this->precedence);
 	}
 
 	function is_function()
@@ -145,6 +139,7 @@ class Expression
 		//echo $ss.'<br>';
 		$brr = new Brr();
 		$c = $brr->sub($ss);
+		//echo "parse $c\n";
 		$this->parse1($c,0);
 		array_splice( $this->brackets, 0 );
 		array_splice( $this->brackets_re, 0 );
@@ -188,19 +183,18 @@ class Expression
 		{
 			return '\frac{'.$this->terms[0]->latex().'}{'.$this->terms[1]->latex().'}';
 		}
-		global $precedence;
 		$out = '';
 		$n = sizeof($this->terms); // number of terms
 		$im_operator = $this->is_operator() && $this->fun != '^';
 		$im_times = $this->fun == '*';
-		$p = $precedence[$this->fun];
+		$p = $this->precedence[$this->fun];
 		// loop over the terms
 		for($i=0;$i<$n;++$i)
 		{
 			// make latex for the term
 			$t = $this->terms[$i];
 			$tout = $t->latex();
-			if ($im_operator && $t->is_operator() && $p > $precedence[$t->fun])
+			if ($im_operator && $t->is_operator() && $p > $this->precedence[$t->fun])
 			{
 				$tout = '('.$tout.')';
 			}
@@ -230,7 +224,7 @@ class Expression
 		}
 		if ($n > 0)
 		{// I am a named function such as sin(...)
-			if (!array_key_exists($this->fun,$precedence))
+			if (!array_key_exists($this->fun,$this->precedence))
 			{
 				if ($n > 1 || sizeof($this->terms[0]->terms) > 0)
 				{
@@ -241,10 +235,9 @@ class Expression
 		}
 		else
 		{// I am a simple variable
-			global $greek;
-			if (strlen($this->fun) > 1 && array_key_exists($this->fun,$greek))
+			if (strlen($this->fun) > 1 && array_key_exists($this->fun,$this->greek))
 			{
-				$out = $greek[$this->fun].' ';
+				$out = $this->greek[$this->fun].' ';
 			}
 			else
 			{
@@ -260,7 +253,7 @@ class Expression
 		return $out;
 	}
 
-	function log($br = '<br>')
+	function log($br = "\n")
 	{
 	  echo $this->op.$this->fun;
 	  $n = sizeof($this->terms);
@@ -289,7 +282,6 @@ class Expression
 				return '$'.$this->fun;
 			}
 		}
-		global $precedence;
 		$res = '';
 		if ($this->fun == '^')
 		{
@@ -299,7 +291,7 @@ class Expression
 			}
 			$res = 'pow';
 		}
-		else if (!array_key_exists($this->fun,$precedence))
+		else if (!array_key_exists($this->fun,$this->precedence))
 		{
 			$res .= $this->fun;
 		}
@@ -355,25 +347,7 @@ class Expression
 // ---------------------------------------------------------------------------------
 	private function get_brackets_re($n)
 	{
-		global $brackets_re_template;
-		return sprintf($brackets_re_template,$n,$n);
-		/*$l = sizeof($this->brackets_re);
-		echo 'getting brackets '.$n.' '.$l.' <br>';
-		if ($n < $l)
-		{
-			return $this->brackets_re[$n-1];
-		}
-		else if ($n == $l)
-		{
-			$r = sprintf($brackets_re_template,$n,$n);
-			array_push($this->brackets_re,$r);
-			return $r;
-		}
-		else
-		{
-			$this->get_brackets_re($n-1);
-			return $this->get_brackets_re($n);
-		}*/
+		return sprintf($this->brackets_re_template,$n,$n);
 	}
 	  
   private function repl_brackets($m)
@@ -396,16 +370,16 @@ class Expression
 	*/
 	private function add_name($name,$n)
 	{
-		/*echo 'add name:'.$name[1].'<br>';
+		/*echo 'add name:'.$name[1]."\n";
 		while (list($key, $val) = each($this->brackets)) {
-			echo "$key => $val<br>";
+			echo "$key => $val\n";
 		}//*/
 		$e = new Expression();
 		$e->op = $name[0];
 		if (preg_match(':(\w*)({\d+}):',$name[1],$m))
 		{
 			$s = $this->brackets[$m[2]];
-			//echo 'found:'.$s.'<br>';
+			//echo 'found:'.$s."\n";
 			//if (preg_match('|(\w+)\s*\(\[\d+\](.+)\)|',$s,$m) > 0)
 			if (strlen($m[1]) > 0)
 			{
@@ -434,7 +408,7 @@ class Expression
 
   private function set_name($s,$n)
   {
-    //echo 'set name:'.$s.'<br>';
+    //echo 'set name:'.$s."\n";
     if (preg_match(':(\w*)({\d+}):',$s,$m))
     {
       $s = $this->brackets[$m[2]];
@@ -485,7 +459,7 @@ class Expression
 			//echo 'repl '.$s.'<br>';
 			foreach($this->brackets as $key => $value)
 			{
-				//echo 'key '.$key.' value='.$value.'<br>';
+				//echo 'key '.$key.' value='.$value."\n";
 				$value = preg_replace('|([\(\)])\['.$n.'\]|','${1}',$value);
 				if ($value[0] == '(' && $value[strlen($value)-1] = ')')
 				{
@@ -513,16 +487,15 @@ class Expression
 		}
 		// find the smallest precedence
 		$prec = 1000;
-		global $precedence, $op_name;
 		
 		for($i = 1; $i < sizeof($names); ++$i)
 		{
 			$name = $names[$i];
 			$op = $name[0];
 			if (strlen($op) == 0) continue;
-			if (array_key_exists($op,$precedence))
+			if (array_key_exists($op,$this->precedence))
 			{
-				$p = $precedence[$op];
+				$p = $this->precedence[$op];
 				if ($p < $prec)
 				{
 					$prec = $p;
@@ -533,7 +506,7 @@ class Expression
 				 throw new Exception('Operator ['.$op.'] is not defined');
 			}
 		}
-		if ($prec > sizeof($op_name))
+		if ($prec > sizeof($this->op_name))
 		{
 			/*foreach($names as $name)
 			{
@@ -551,14 +524,14 @@ class Expression
 			}
 			else
 			{
-				$this->fun = $op_name[$precedence[$op]];
+				$this->fun = $this->op_name[$this->precedence[$op]];
 				$this->add_name($names[0],$n+1);
 			}
 			return;
 		}
 		else
 		{
-			$this->fun = $op_name[$prec];
+			$this->fun = $this->op_name[$prec];
 		}
 		$i = 0;
 		$l = sizeof($names);
@@ -566,7 +539,7 @@ class Expression
 		{
 			$name = $names[$k];
 			$op = $name[0];
-			$p = $precedence[$op];
+			$p = $this->precedence[$op];
 			if ($p == $prec)
 			{
 				$j = $k;
