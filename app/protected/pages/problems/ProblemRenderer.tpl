@@ -5,6 +5,13 @@
 </h3>
  
 <p>
-<com:TLiteral Text="<%# $this->Data->content %>" />
+<com:TLiteral Text="<%# $this->getText() %>" />
 </p>
+
+<div>
+<com:THyperLink Text="Edit" SkinID="MainMenu"
+    NavigateUrl="<%= $this->Service->constructUrl('problems.EditProblem',array('id'=>$this->Data->problem_id)) %>"
+    Visible="<%= $this->User->IsAdmin %>" />
+</div>
+	
 </div>

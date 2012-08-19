@@ -1,11 +1,20 @@
 <html>
-<com:THead />
+<com:THead>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+	</script>
+	<script type="text/javascript"
+	  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+
+</com:THead>
 <body>
 <com:TForm>
 <div id="page">
  
 <div id="header">
-<h1>My PRADO Application</h1>
+<h1>Application</h1>
 </div>
  
 <div id="main">

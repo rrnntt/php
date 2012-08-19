@@ -1,0 +1,29 @@
+<%@ Title="Edit Problem" %>
+ 
+<com:TContent ID="Main">
+ 
+<h2>
+<com:TLiteral Text="<%= $this->Problem->problem_id %>" />
+</h2>
+ 
+<span>Text:</span>
+<com:TRequiredFieldValidator
+    ControlToValidate="TextEdit"
+    ErrorMessage="Please provide text."
+    Display="Dynamic" />
+<br/>
+<com:TTextBox ID="TextEdit" TextMode="MultiLine" Columns="50" Rows="10" />
+ 
+<br/>
+<span>Answer:</span>
+<com:TRequiredFieldValidator
+    ControlToValidate="AnswerEdit"
+    ErrorMessage="Please provide answer."
+    Display="Dynamic" />
+<br/>
+<com:TTextBox ID="AnswerEdit" TextMode="MultiLine" Columns="50" Rows="5" />
+ 
+<br/>
+<com:TButton Text="Save" OnClick="saveButtonClicked" />
+ 
+</com:TContent>
